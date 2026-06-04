@@ -5,140 +5,129 @@ close all;
 s = tf('s');
 k = 1;
 
-%% =====================================
-% a) G(s) = (s+1)/s^3
-%% =====================================
+%% SISTEMAS
 
-L = (k*(s+1))/(s^3);
+G{1} = (k*(s+1))/(s^3);
 
-figure;
-margin(L);
-grid on;
-title('a) G(s) = (s+1)/s^3');
+G{2} = (k*(s+1))/(s*(s+2)*(s^2+s+1));
 
-[Gm,Pm,Wcg,Wcp] = margin(L);
+G{3} = (k*(s+3))/(s*(s+1)*(s+2));
 
-fprintf('\n========== a) ==========\n');
-fprintf('L(s) = (k*(s+1))/(s^3)\n');
-fprintf('Margen de fase: %.2f°\n',Pm);
+G{4} = k/((s+2)*(s-5));
 
-if isinf(Gm)
-    fprintf('Margen de ganancia: Infinito\n');
-else
-    fprintf('Margen de ganancia: %.2f dB\n',20*log10(Gm));
-end
+G{5} = (k*(s+1))/((s+5)*(s^2-9));
 
-%% =====================================
-% b) G(s) = (s+1)/[s(s+2)(s^2+s+1)]
-%% =====================================
+G{6} = (k*(s+1))/(s*(s-1));
 
-L = (k*(s+1))/(s*(s+2)*(s^2+s+1));
+%% VECTOR DE FRECUENCIAS
 
-figure;
-margin(L);
-grid on;
-title('b) G(s) = (s+1)/[s(s+2)(s^2+s+1)]');
+w = logspace(-2,2,5000);
 
-[Gm,Pm,Wcg,Wcp] = margin(L);
+%% ANALISIS
 
-fprintf('\n========== b) ==========\n');
-fprintf('L(s) = (k*(s+1))/(s*(s+2)*(s^2+s+1))\n');
-fprintf('Margen de fase: %.2f°\n',Pm);
+for i = 1:length(G)
 
-if isinf(Gm)
-    fprintf('Margen de ganancia: Infinito\n');
-else
-    fprintf('Margen de ganancia: %.2f dB\n',20*log10(Gm));
-end
+    fprintf('\n========================\n');
+    fprintf('Sistema %d\n',i);
+    fprintf('========================\n');
 
-%% =====================================
-% c) G(s) = (s+3)/[s(s+1)(s+2)]
-%% =====================================
+    %% Margenes
 
-L = (k*(s+3))/(s*(s+1)*(s+2));
+    [GM,PM,Wcg,Wcp] = margin(G{i});
 
-figure;
-margin(L);
-grid on;
-title('c) G(s) = (s+3)/[s(s+1)(s+2)]');
+    if isinf(GM)
+        fprintf('Margen de ganancia = Infinito\n');
+    else
+        fprintf('Margen de ganancia = %.2f dB\n',20*log10(GM));
+    end
 
-[Gm,Pm,Wcg,Wcp] = margin(L);
+    if isinf(PM)
+        fprintf('Margen de fase = Infinito\n');
+    else
+        fprintf('Margen de fase = %.2f grados\n',PM);
+    end
 
-fprintf('\n========== c) ==========\n');
-fprintf('L(s) = (k*(s+3))/(s*(s+1)*(s+2))\n');
-fprintf('Margen de fase: %.2f°\n',Pm);
+    fprintf('Wcg = %.4f rad/s\n',Wcg);
+    fprintf('Wcp = %.4f rad/s\n',Wcp);
 
-if isinf(Gm)
-    fprintf('Margen de ganancia: Infinito\n');
-else
-    fprintf('Margen de ganancia: %.2f dB\n',20*log10(Gm));
-end
+    %% Respuesta en frecuencia
 
-%% =====================================
-% d) G(s) = 1/[(s+2)(s-5)]
-%% =====================================
+    H = squeeze(freqresp(G{i},w));
 
-L = k/((s+2)*(s-5));
+    mag = 20*log10(abs(H));
 
-figure;
-margin(L);
-grid on;
-title('d) G(s) = 1/[(s+2)(s-5)]');
+    phase = unwrap(angle(H))*180/pi;
 
-[Gm,Pm,Wcg,Wcp] = margin(L);
+    %% Ajuste de fase
+    % Para mostrar la misma rama usada en teoria
 
-fprintf('\n========== d) ==========\n');
-fprintf('L(s) = k/((s+2)*(s-5))\n');
-fprintf('Margen de fase: %.2f°\n',Pm);
+    while max(phase) > 0
+        phase = phase - 360;
+    end
 
-if isinf(Gm)
-    fprintf('Margen de ganancia: Infinito\n');
-else
-    fprintf('Margen de ganancia: %.2f dB\n',20*log10(Gm));
-end
+    %% BODE
 
-%% =====================================
-% e) G(s) = (s+1)/[(s+5)(s^2-9)]
-%% =====================================
+    figure
 
-L = (k*(s+1))/((s+5)*(s^2-9));
+    %=====================
+    % MAGNITUD
+    %=====================
 
-figure;
-margin(L);
-grid on;
-title('e) G(s) = (s+1)/[(s+5)(s^2-9)]');
+    subplot(2,1,1)
 
-[Gm,Pm,Wcg,Wcp] = margin(L);
+    semilogx(w,mag,'LineWidth',2)
 
-fprintf('\n========== e) ==========\n');
-fprintf('L(s) = (k*(s+1))/((s+5)*(s^2-9))\n');
-fprintf('Margen de fase: %.2f°\n',Pm);
+    hold on
+    grid on
 
-if isinf(Gm)
-    fprintf('Margen de ganancia: Infinito\n');
-else
-    fprintf('Margen de ganancia: %.2f dB\n',20*log10(Gm));
-end
+    yline(0,'k--')
 
-%% =====================================
-% f) G(s) = (s+1)/[s(s-1)]
-%% =====================================
+    if Wcp > 0
+        xline(Wcp,'g--')
+    end
 
-L = (k*(s+1))/(s*(s-1));
+    if Wcg > 0
+        xline(Wcg,'r--')
+    end
 
-figure;
-margin(L);
-grid on;
-title('f) G(s) = (s+1)/[s(s-1)]');
+    ylabel('Magnitud (dB)')
 
-[Gm,Pm,Wcg,Wcp] = margin(L);
+    title(['Sistema ',num2str(i)])
 
-fprintf('\n========== f) ==========\n');
-fprintf('L(s) = (k*(s+1))/(s*(s-1))\n');
-fprintf('Margen de fase: %.2f°\n',Pm);
+    legend('Magnitud',...
+           '0 dB',...
+           'Wcp (PM)',...
+           'Wcg (GM)',...
+           'Location','best')
 
-if isinf(Gm)
-    fprintf('Margen de ganancia: Infinito\n');
-else
-    fprintf('Margen de ganancia: %.2f dB\n',20*log10(Gm));
+    %=====================
+    % FASE
+    %=====================
+
+    subplot(2,1,2)
+
+    semilogx(w,phase,'LineWidth',2)
+
+    hold on
+    grid on
+
+    yline(-180,'k--')
+
+    if Wcp > 0
+        xline(Wcp,'g--')
+    end
+
+    if Wcg > 0
+        xline(Wcg,'r--')
+    end
+
+    xlabel('\omega (rad/s)')
+    ylabel('Fase (grados)')
+
+    legend('Fase',...
+           '-180°',...
+           'Wcp (PM)',...
+           'Wcg (GM)',...
+           'Location','best')
+
 end
