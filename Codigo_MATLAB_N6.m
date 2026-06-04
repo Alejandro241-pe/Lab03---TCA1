@@ -2,109 +2,68 @@ clc;
 clear;
 close all;
 
+s = tf('s');
 k = 1;
 
-% Tiempo
-t = linspace(0,20,2000);
+%% SISTEMAS
 
-% Frecuencias
-w = logspace(-2,2,2000);
+G{1} = (k*(s+1))/(s^3);
 
-jw = 1j*w;
+G{2} = (k*(s+1))/(s*(s+2)*(s^2+s+1));
 
-%% FUNCIONES L(s)
+G{3} = (k*(s+3))/(s*(s+1)*(s+2));
 
-L1 = k*(jw+1)./(jw.^3);
+G{4} = k/((s+2)*(s-5));
 
-L2 = k*(jw+1)./(jw.*(jw+2).*(jw.^2+jw+1));
+G{5} = (k*(s+1))/((s+5)*(s^2-9));
 
-L3 = k*(jw+3)./(jw.*(jw+1).*(jw+2));
+G{6} = (k*(s+1))/(s*(s-1));
 
-L4 = k./((jw+2).*(jw-5));
+t = 0:0.01:20;
 
-L5 = k*(jw+1)./((jw+5).*(jw.^2-9));
+rampa = t;
 
-L6 = k*(jw+1)./(jw.*(jw-1));
+for i = 1:length(G)
 
-L = {L1,L2,L3,L4,L5,L6};
+    fprintf('\n========================\n');
+    fprintf('Sistema %d\n',i);
+    fprintf('========================\n');
 
-%% PROCEDIMIENTO 6
+    %% Lazo cerrado
 
-for i = 1:length(L)
+    T = feedback(G{i},1);
 
-    %% =========================
-    % SISTEMA EN LAZO CERRADO
-    % =========================
+    %% Polos
 
-    T = L{i} ./ (1 + L{i});
+    p = pole(T);
 
-    %% =========================
-    % RESPUESTA AL ESCALON
-    % =========================
+    fprintf('Polos del lazo cerrado:\n');
+    disp(p)
 
-    % Aproximación temporal
-    y_step = real(ifft(T));
+    %% Estabilidad
 
-    y_step = y_step(1:length(t));
+    if isstable(T)
 
-    %% =========================
-    % RESPUESTA A RAMPA
-    % =========================
-
-    rampa = t;
-
-    y_ramp = cumtrapz(t,y_step);
-
-    %% =========================
-    % GRAFICA ESCALON
-    % =========================
-
-    figure;
-
-    plot(t,y_step,'LineWidth',2);
-
-    grid on;
-
-    title(['Respuesta al Escalon - L',num2str(i)]);
-
-    xlabel('Tiempo');
-
-    ylabel('Salida');
-
-    %% =========================
-    % GRAFICA RAMPA
-    % =========================
-
-    figure;
-
-    plot(t,y_ramp,'LineWidth',2);
-
-    grid on;
-
-    title(['Respuesta a la Rampa - L',num2str(i)]);
-
-    xlabel('Tiempo');
-
-    ylabel('Salida');
-
-    %% =========================
-    % ESTABILIDAD
-    % =========================
-
-    fprintf('\n====================\n');
-
-    fprintf('Sistema L%d\n',i);
-
-    fprintf('====================\n');
-
-    if max(abs(y_step)) < 100
-
-        fprintf('Sistema estable\n');
+        fprintf('Sistema ESTABLE\n');
 
     else
 
-        fprintf('Sistema inestable\n');
+        fprintf('Sistema INESTABLE\n');
 
     end
+
+    %% Escalon
+
+    figure;
+    step(T,t);
+    grid on;
+    title(['Escalon - Sistema ',num2str(i)])
+
+    %% Rampa
+
+    figure;
+    lsim(T,rampa,t);
+    grid on;
+    title(['Rampa - Sistema ',num2str(i)])
 
 end
