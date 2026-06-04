@@ -9,7 +9,7 @@ G{3} = (s+3)/(s*(s+1)*(s+2));
 G{4} = 1/((s+2)*(s-5));
 G{5} = (s+1)/((s+5)*(s^2-9));
 G{6} = (s+1)/(s*(s-1));
-k_values = logspace(-3,3,20000);
+k_values = logspace(-3,3,2000);
 PM_objetivo = 45;
 tol = 0.5;
 warning('off','all') % Oculta warnings molestos
