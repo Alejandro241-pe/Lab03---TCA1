@@ -42,16 +42,21 @@ for i = 1:length(G)
 
     %% Estabilidad
 
-    if isstable(T)
+    p = pole(T);
+
+    if all(real(p) < 0)
 
         fprintf('Sistema ESTABLE\n');
 
-    else
+    elseif any(real(p) > 0)
 
         fprintf('Sistema INESTABLE\n');
 
-    end
+    else
 
+        fprintf('Sistema MARGINALMENTE ESTABLE\n');
+
+    end
     %% Escalon
 
     figure;
